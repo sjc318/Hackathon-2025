@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adaptive Music System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white min-h-screen">
+    <div id="app">
+        <!-- Setup Screen -->
+        <div id="setupScreen" class="p-6">
+            <div class="max-w-4xl mx-auto">
+                <div class="flex justify-between items-center mb-8">
+                    <div>
+                        <h1 class="text-4xl font-bold mb-2">Adaptive Music System</h1>
+                        <p class="text-blue-200">AI-powered music that adapts to you</p>
+                    </div>
+                    <button id="logoutBtn" class="hidden items-center gap-2 bg-red-500/20 hover:bg-red-500/30 px-4 py-2 rounded-lg transition-all">
+                        Logout
+                    </button>
+                </div>
+
+                <div id="errorMessage" class="hidden bg-red-500/20 border border-red-500 rounded-lg p-4 mb-6">
+                    <p class="text-red-200"></p>
+                </div>
+
+                <!-- Spotify Integration -->
+                <div class="bg-white/10 backdrop-blur-md rounded-lg p-6 mb-6">
+                    <h2 class="text-2xl font-bold mb-4">🎵 Spotify Integration</h2>
+                    <div id="userInfo" class="hidden mb-4 p-3 bg-green-500/20 rounded-lg">
+                        <p class="text-green-200">Logged in as: <strong id="userName"></strong></p>
+                    </div>
+                    <div class="flex gap-4">
+                        <button id="connectBtn" class="flex-1 py-3 rounded-lg font-semibold transition-all bg-green-500 hover:bg-green-600 text-white">
+                            Connect Spotify
+                        </button>
+                        <button id="loadPlaylistsBtn" class="flex-1 bg-white/20 hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed py-3 rounded-lg font-semibold transition-all" disabled>
+                            Load My Playlists
+                        </button>
+                    </div>
+                    <p id="spotifyStatus" class="text-sm text-blue-200 mt-3">
+                        Connect to access your playlists and get personalized recommendations.
+                    </p>
+                </div>
+
+                <!-- User Profile -->
+                <div id="profileSection" class="hidden bg-white/10 backdrop-blur-md rounded-lg p-6 mb-6">
+                    <h2 class="text-2xl font-bold mb-4">Your Music Profile</h2>
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <div class="text-sm text-blue-200">Average Tempo</div>
+                            <div class="text-2xl font-bold" id="avgTempo">--</div>
+                        </div>
+                        <div>
+                            <div class="text-sm text-blue-200">Energy Level</div>
+                            <div class="text-2xl font-bold" id="avgEnergy">--</div>
+                        </div>
+                        <div>
+                            <div class="text-sm text-blue-200">Positivity</div>
+                            <div class="text-2xl font-bold" id="avgValence">--</div>
+                        </div>
+                        <div>
+                            <div class="text-sm text-blue-200">Acoustic Preference</div>
+                            <div class="text-2xl font-bold" id="avgAcousticness">--</div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-blue-200 mb-2">Music Analysis</div>
+                        <div id="genresList" class="flex flex-wrap gap-2"></div>
+                    </div>
+                </div>
+
+                <!-- Context Settings -->
+                <div class="bg-white/10 backdrop-blur-md rounded-lg p-6 mb-6">
+                    <h2 class="text-2xl font-bold mb-4">Current Context</h2>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm text-blue-200 mb-2">Weather</label>
+                            <select id="weatherSelect" class="w-full bg-white/20 rounded px-3 py-2 text-white">
+                                <option value="sunny">☀️ Sunny</option>
+                                <option value="rainy">🌧️ Rainy</option>
+                                <option value="cloudy">☁️ Cloudy</option>
+                                <option value="clear">🌙 Clear Night</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm text-blue-200 mb-2">Location</label>
+                            <select id="locationSelect" class="w-full bg-white/20 rounded px-3 py-2 text-white">
+                                <option value="home">🏠 Home</option>
+                                <option value="gym">💪 Gym</option>
+                                <option value="commute">🚗 Commute</option>
+                                <option value="office">💼 Office</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm text-blue-200 mb-2">Activity</label>
+                            <select id="activitySelect" class="w-full bg-white/20 rounded px-3 py-2 text-white">
+                                <option value="relaxing">😌 Relaxing</option>
+                                <option value="working out">🏃 Working Out</option>
+                                <option value="focusing">🎯 Focusing</option>
+                                <option value="partying">🎉 Partying</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm text-blue-200 mb-2">Time of Day</label>
+                            <select id="timeOfDaySelect" class="w-full bg-white/20 rounded px-3 py-2 text-white">
+                                <option value="morning">🌅 Morning</option>
+                                <option value="afternoon" selected>☀️ Afternoon</option>
+                                <option value="evening">🌆 Evening</option>
+                                <option value="night">🌙 Night</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Keywords -->
+                <div class="bg-white/10 backdrop-blur-md rounded-lg p-6 mb-6">
+                    <h2 class="text-2xl font-bold mb-4">Keywords (Optional)</h2>
+                    <input id="keywordsInput" type="text" placeholder="e.g., energetic, chill, electronic, rock" class="w-full bg-white/20 rounded px-4 py-3 text-white placeholder-blue-200">
+                    <p class="text-sm text-blue-200 mt-2">Separate multiple keywords with commas</p>
+                </div>
+
+                <!-- Generate Button -->
+                <button id="generateBtn" class="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 rounded-lg text-xl transition-all" disabled>
+                    Load Playlists First
+                </button>
+
+                <!-- Activity Log -->
+                <div id="activityLog" class="hidden bg-white/10 backdrop-blur-md rounded-lg p-6 mt-6">
+                    <h3 class="text-lg font-bold mb-3">Recent Activity</h3>
+                    <div id="logMessages" class="space-y-2 max-h-48 overflow-auto"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Player Screen (hidden initially) -->
+        <div id="playerScreen" class="hidden h-screen flex flex-col">
+            <!-- Header -->
+            <div class="bg-black/20 backdrop-blur-md p-4 border-b border-white/10">
+                <div class="max-w-6xl mx-auto flex justify-between items-center">
+                    <h1 class="text-2xl font-bold">Adaptive Music System</h1>
+                    <div class="flex gap-4 text-sm items-center">
+                        <div class="flex items-center gap-2">
+                            <span id="headerWeather">☀️</span>
+                            <span id="headerWeatherText">sunny</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span>📍</span>
+                            <span id="headerLocation">home</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span>🎯</span>
+                            <span id="headerActivity">relaxing</span>
+                        </div>
+                        <button id="backBtn" class="ml-4 bg-white/20 hover:bg-white/30 px-3 py-1 rounded transition-all">
+                            Back
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-hidden flex p-6">
+                <!-- Queue Display -->
+                <div class="flex-1 bg-white/10 backdrop-blur-md rounded-lg p-6 overflow-auto">
+                    <h3 class="text-xl font-bold mb-4">Your Adaptive Queue (<span id="queueCount">0</span> songs)</h3>
+                    <div id="queueList" class="space-y-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let state = {
+            authenticated: false,
+            profile: null,
+            tracks: [],
+            preferences: null,
+            queue: [],
+            loading: false
+        };
+
+        // DOM Elements
+        const setupScreen = document.getElementById('setupScreen');
+        const playerScreen = document.getElementById('playerScreen');
+        const connectBtn = document.getElementById('connectBtn');
+        const loadPlaylistsBtn = document.getElementById('loadPlaylistsBtn');
+        const generateBtn = document.getElementById('generateBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const backBtn = document.getElementById('backBtn');
+        const errorMessage = document.getElementById('errorMessage');
+        const activityLog = document.getElementById('activityLog');
+        const logMessages = document.getElementById('logMessages');
+
+        // Utility Functions
+        function showError(message) {
+            errorMessage.querySelector('p').textContent = message;
+            errorMessage.classList.remove('hidden');
+            setTimeout(() => errorMessage.classList.add('hidden'), 5000);
+        }
+
+        function addLog(message) {
+            const time = new Date().toLocaleTimeString();
+            const logDiv = document.createElement('div');
+            logDiv.className = 'bg-white/10 p-2 rounded text-sm';
+            logDiv.innerHTML = `<span class="text-blue-300 text-xs">${time}</span> - ${message}`;
+            logMessages.insertBefore(logDiv, logMessages.firstChild);
+            activityLog.classList.remove('hidden');
+        }
+
+        function setLoading(button, loading) {
+            if (loading) {
+                button.disabled = true;
+                button.innerHTML = '<div class="spinner w-5 h-5 border-2 border-white border-t-transparent rounded-full mx-auto"></div>';
+            } else {
+                button.disabled = false;
+            }
+        }
+
+        // API Functions
+        async function checkAuthStatus() {
+            try {
+                const response = await fetch('/api/auth/status', { credentials: 'include' });
+                const data = await response.json();
+
+                if (data.authenticated) {
+                    state.authenticated = true;
+                    connectBtn.textContent = '✓ Connected to Spotify';
+                    connectBtn.className = 'flex-1 py-3 rounded-lg font-semibold transition-all bg-green-500/30 text-green-200 cursor-not-allowed';
+                    connectBtn.disabled = true;
+                    loadPlaylistsBtn.disabled = false;
+                    logoutBtn.classList.remove('hidden');
+                    logoutBtn.classList.add('flex');
+
+                    // Load profile
+                    await loadProfile();
+                }
+            } catch (error) {
+                console.error('Auth status check failed:', error);
+            }
+        }
+
+        async function connectSpotify() {
+            try {
+                addLog('Connecting to Spotify...');
+                const response = await fetch('/api/auth/login', { credentials: 'include' });
+                const data = await response.json();
+                window.location.href = data.auth_url;
+            } catch (error) {
+                showError('Failed to connect: ' + error.message);
+                addLog('Connection failed');
+            }
+        }
+
+        async function loadProfile() {
+            try {
+                const response = await fetch('/api/user/profile', { credentials: 'include' });
+                const profile = await response.json();
+
+                state.profile = profile;
+                document.getElementById('userName').textContent = profile.display_name;
+                document.getElementById('userInfo').classList.remove('hidden');
+                addLog(`Welcome, ${profile.display_name}!`);
+            } catch (error) {
+                console.error('Failed to load profile:', error);
+            }
+        }
+
+        async function loadPlaylists() {
+            setLoading(loadPlaylistsBtn, true);
+            addLog('Loading your playlists...');
+
+            try {
+                const response = await fetch('/api/analyze-library', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                state.tracks = data.tracks;
+                state.preferences = data.preferences;
+
+                addLog(`✓ Loaded ${data.total_tracks} tracks`);
+                displayPreferences(data.preferences);
+
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Generate My Playlist 🎵';
+
+                loadPlaylistsBtn.textContent = '✓ Playlists Loaded';
+            } catch (error) {
+                showError('Failed to load playlists: ' + error.message);
+                addLog('Failed to load playlists');
+            } finally {
+                loadPlaylistsBtn.disabled = false;
+                loadPlaylistsBtn.innerHTML = 'Load My Playlists';
+            }
+        }
+
+        function displayPreferences(prefs) {
+            document.getElementById('avgTempo').textContent = prefs.avg_tempo.toFixed(0) + ' BPM';
+            document.getElementById('avgEnergy').textContent = (prefs.avg_energy * 100).toFixed(0) + '%';
+            document.getElementById('avgValence').textContent = (prefs.avg_valence * 100).toFixed(0) + '%';
+            document.getElementById('avgAcousticness').textContent = (prefs.avg_acousticness * 100).toFixed(0) + '%';
+
+            const genresList = document.getElementById('genresList');
+            genresList.innerHTML = '';
+
+            const genres = Object.entries(prefs.genre_preferences).slice(0, 6);
+            genres.forEach(([genre, count]) => {
+                const span = document.createElement('span');
+                span.className = 'bg-blue-500/30 px-3 py-1 rounded-full text-sm';
+                span.textContent = `${genre} (${count})`;
+                genresList.appendChild(span);
+            });
+
+            document.getElementById('profileSection').classList.remove('hidden');
+        }
+
+        async function generateQueue() {
+            setLoading(generateBtn, true);
+            addLog('Generating your adaptive queue...');
+
+            const context = {
+                weather: document.getElementById('weatherSelect').value,
+                location: document.getElementById('locationSelect').value,
+                activity: document.getElementById('activitySelect').value,
+                timeOfDay: document.getElementById('timeOfDaySelect').value
+            };
+
+            const keywords = document.getElementById('keywordsInput').value;
+
+            try {
+                const response = await fetch('/api/generate-queue', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ context, keywords })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                state.queue = data.queue;
+                addLog(`✓ Generated queue with ${data.queue.length} songs`);
+
+                // Show player screen
+                showPlayerScreen(context);
+            } catch (error) {
+                showError('Failed to generate queue: ' + error.message);
+                addLog('Queue generation failed');
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.innerHTML = 'Generate My Playlist 🎵';
+            }
+        }
+
+        function showPlayerScreen(context) {
+            setupScreen.classList.add('hidden');
+            playerScreen.classList.remove('hidden');
+
+            // Update header
+            const weatherEmojis = { sunny: '☀️', rainy: '🌧️', cloudy: '☁️', clear: '🌙' };
+            document.getElementById('headerWeather').textContent = weatherEmojis[context.weather] || '☀️';
+            document.getElementById('headerWeatherText').textContent = context.weather;
+            document.getElementById('headerLocation').textContent = context.location;
+            document.getElementById('headerActivity').textContent = context.activity;
+
+            // Display queue
+            displayQueue();
+        }
+
+        function displayQueue() {
+            const queueList = document.getElementById('queueList');
+            document.getElementById('queueCount').textContent = state.queue.length;
+            queueList.innerHTML = '';
+
+            state.queue.forEach((song, index) => {
+                const songDiv = document.createElement('div');
+                songDiv.className = 'p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-all';
+
+                songDiv.innerHTML = `
+                    <div class="flex justify-between items-center gap-3">
+                        ${song.album_art ? `<img src="${song.album_art}" alt="" class="w-12 h-12 rounded">` : ''}
+                        <div class="flex-1">
+                            <div class="font-semibold">${song.title}</div>
+                            <div class="text-sm text-blue-200">${song.artist} • ${song.genre || 'Unknown'}</div>
+                        </div>
+                        <div class="text-sm text-blue-200">
+                            ${Math.floor(song.duration / 60)}:${(song.duration % 60).toFixed(0).padStart(2, '0')}
+                        </div>
+                    </div>
+                    <div class="mt-2 text-xs text-blue-300 flex gap-2">
+                        <span class="bg-purple-500/30 px-2 py-1 rounded">${song.tempo.toFixed(0)} BPM</span>
+                        <span class="bg-pink-500/30 px-2 py-1 rounded">Energy: ${(song.energy * 100).toFixed(0)}%</span>
+                        <span class="bg-blue-500/30 px-2 py-1 rounded">Score: ${(song.score * 100).toFixed(0)}%</span>
+                    </div>
+                `;
+
+                queueList.appendChild(songDiv);
+            });
+        }
+
+        async function logout() {
+            try {
+                await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                window.location.reload();
+            } catch (error) {
+                console.error('Logout failed:', error);
+            }
+        }
+
+        // Event Listeners
+        connectBtn.addEventListener('click', connectSpotify);
+        loadPlaylistsBtn.addEventListener('click', loadPlaylists);
+        generateBtn.addEventListener('click', generateQueue);
+        logoutBtn.addEventListener('click', logout);
+        backBtn.addEventListener('click', () => {
+            playerScreen.classList.add('hidden');
+            setupScreen.classList.remove('hidden');
+        });
+
+        // Check for OAuth callback
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('auth') === 'success') {
+            addLog('✓ Successfully authenticated with Spotify');
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        // Initialize
+        checkAuthStatus();
+    </script>
+</body>
+</html>

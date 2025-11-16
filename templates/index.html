@@ -37,7 +37,25 @@
         .hidden { display: none; }
         .loading { opacity: 0.6; pointer-events: none; }
         #weather-info { margin: 20px 0; }
-        #playlist { max-height: 400px; overflow-y: auto; }
+        #playlist {
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        #playlist::-webkit-scrollbar {
+            width: 8px;
+        }
+        #playlist::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        #playlist::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        #playlist::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
         .track-item {
             padding: 10px;
             margin: 5px 0;
@@ -154,6 +172,97 @@
             background: #1DB954;
             cursor: pointer;
         }
+        #playlist-selector {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        .playlist-checkbox {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .playlist-checkbox:hover {
+            background: #f0f0f0;
+        }
+        .playlist-checkbox input[type="checkbox"] {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .playlist-checkbox label {
+            cursor: pointer;
+            flex: 1;
+        }
+        .playlist-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 3px;
+            margin-right: 10px;
+            background: #ddd;
+        }
+        .select-all-btn {
+            background: #666;
+            font-size: 0.9em;
+            padding: 8px 15px;
+        }
+        .activity-btn {
+            flex: 1;
+            min-width: 140px;
+            background: #666;
+            transition: all 0.3s ease;
+        }
+        .activity-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .slider-container {
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        .slider-container label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        .parameter-slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        .parameter-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #1DB954;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .parameter-slider::-webkit-slider-thumb:hover {
+            background: #1ed760;
+        }
+        .parameter-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #1DB954;
+            cursor: pointer;
+            border: none;
+        }
     </style>
     <script src="https://sdk.scdn.co/spotify-player.js"></script>
 </head>
@@ -177,9 +286,49 @@
 
         <div id="app-section" class="hidden">
             <div class="card">
-                <h2>Current Weather</h2>
+                <h2>Current Context</h2>
                 <div id="weather-info">
                     <p>Loading weather data...</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Activity Selection</h2>
+                <p>Choose your current activity for personalized recommendations</p>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px;">
+                    <button class="btn activity-btn" data-activity="relaxing" onclick="selectActivity('relaxing')" style="background: #1DB954;">Relaxing</button>
+                    <button class="btn activity-btn" data-activity="working out" onclick="selectActivity('working out')">Working Out</button>
+                    <button class="btn activity-btn" data-activity="focusing" onclick="selectActivity('focusing')">Focusing</button>
+                    <button class="btn activity-btn" data-activity="party" onclick="selectActivity('party')">Party</button>
+                    <button class="btn activity-btn" data-activity="commuting" onclick="selectActivity('commuting')">Commuting</button>
+                    <button class="btn activity-btn" data-activity="studying" onclick="selectActivity('studying')">Studying</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Fine-tune Parameters</h2>
+                <p>Adjust weights for different factors in music scoring</p>
+                <div style="display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 15px;">
+                    <div class="slider-container">
+                        <label for="weatherWeight">Weather Influence: <span id="weatherValue">60%</span></label>
+                        <input type="range" id="weatherWeight" min="0" max="100" value="60" class="parameter-slider" oninput="updateSliderValue('weather', this.value)">
+                    </div>
+                    <div class="slider-container">
+                        <label for="genreWeight">Learned Genre Preference: <span id="genreValue">100%</span></label>
+                        <input type="range" id="genreWeight" min="0" max="150" value="100" class="parameter-slider" oninput="updateSliderValue('genre', this.value)">
+                    </div>
+                    <div class="slider-container">
+                        <label for="moodWeight">Mood (Valence) Influence: <span id="moodValue">100%</span></label>
+                        <input type="range" id="moodWeight" min="0" max="200" value="100" class="parameter-slider" oninput="updateSliderValue('mood', this.value)">
+                    </div>
+                    <div class="slider-container">
+                        <label for="energyWeight">Energy Matching: <span id="energyValue">100%</span></label>
+                        <input type="range" id="energyWeight" min="0" max="200" value="100" class="parameter-slider" oninput="updateSliderValue('energy', this.value)">
+                    </div>
+                    <div class="slider-container">
+                        <label for="playlistWeight">Playlist Genre Bonus: <span id="playlistValue">100%</span></label>
+                        <input type="range" id="playlistWeight" min="0" max="150" value="100" class="parameter-slider" oninput="updateSliderValue('playlist', this.value)">
+                    </div>
                 </div>
             </div>
 
@@ -210,6 +359,14 @@
                         <input type="range" id="volume-slider" min="0" max="100" value="50" oninput="setVolume(this.value)">
                     </div>
                 </div>
+            </div>
+
+            <div class="card">
+                <h2>Select Source Playlists</h2>
+                <p>Choose playlists to generate weather-aware recommendations from</p>
+                <button class="btn" onclick="loadUserPlaylists()" id="load-playlists-btn">Load My Playlists</button>
+                <button class="btn select-all-btn" onclick="toggleSelectAll()" id="select-all-btn" style="display:none">Select All</button>
+                <div id="playlist-selector" class="hidden"></div>
             </div>
 
             <div class="card">
@@ -253,6 +410,27 @@
             location.reload();
         }
 
+        let currentActivity = 'relaxing'; // Default activity
+
+        // Parameter weights (as percentages of default values)
+        let parameterWeights = {
+            weather: 60,
+            genre: 100,
+            mood: 100,
+            energy: 100,
+            playlist: 100
+        };
+
+        function updateSliderValue(param, value) {
+            parameterWeights[param] = parseInt(value);
+
+            // Update display
+            const displayValue = param === 'weather' ? value + '%' : value + '%';
+            document.getElementById(param + 'Value').textContent = displayValue;
+
+            console.log(`Parameter updated: ${param} = ${value}%`);
+        }
+
         async function loadWeather() {
             try {
                 const response = await fetch('/api/weather/current');
@@ -262,12 +440,28 @@
                 if (data.error) {
                     weatherDiv.innerHTML = `<p>Weather data unavailable: ${data.error}</p>`;
                 } else {
+                    const timeOfDay = data.weather.time_of_day || 'afternoon';
+                    const localTime = data.weather.local_time || 'N/A';
+                    const timeEmoji = {
+                        'morning': '🌅',
+                        'afternoon': '☀️',
+                        'evening': '🌆',
+                        'night': '🌙'
+                    }[timeOfDay] || '⏰';
+
                     weatherDiv.innerHTML = `
-                        <p><strong>Location:</strong> ${data.location.city}, ${data.location.country}</p>
-                        <p><strong>Temperature:</strong> ${data.weather.temperature}°F</p>
-                        <p><strong>Conditions:</strong> ${data.weather.description}</p>
-                        <p><strong>Humidity:</strong> ${data.weather.humidity}%</p>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <p><strong>Location:</strong> ${data.location.city}, ${data.location.country}</p>
+                            <p><strong>Local Time:</strong> ${timeEmoji} ${localTime}</p>
+                            <p><strong>Time of Day:</strong> ${timeOfDay.charAt(0).toUpperCase() + timeOfDay.slice(1)}</p>
+                            <p><strong>Temperature:</strong> ${data.weather.temperature}°F</p>
+                            <p><strong>Conditions:</strong> ${data.weather.description}</p>
+                            <p><strong>Humidity:</strong> ${data.weather.humidity}%</p>
+                        </div>
                     `;
+
+                    // Store weather data globally for use in recommendations
+                    window.currentWeather = data.weather;
                 }
             } catch (error) {
                 console.error('Failed to load weather:', error);
@@ -275,9 +469,97 @@
             }
         }
 
+        function selectActivity(activity) {
+            currentActivity = activity;
+
+            // Update button styles
+            document.querySelectorAll('.activity-btn').forEach(btn => {
+                if (btn.dataset.activity === activity) {
+                    btn.style.background = '#1DB954';
+                } else {
+                    btn.style.background = '#666';
+                }
+            });
+
+            console.log(`Activity selected: ${activity}`);
+        }
+
+        let userPlaylists = [];
+
+        async function loadUserPlaylists() {
+            const btn = document.getElementById('load-playlists-btn');
+            const selectorDiv = document.getElementById('playlist-selector');
+
+            btn.disabled = true;
+            btn.textContent = 'Loading...';
+
+            try {
+                const response = await fetch('/api/user/playlists');
+                const data = await response.json();
+
+                if (data.error) {
+                    selectorDiv.innerHTML = `<p>Error: ${data.error}</p>`;
+                    return;
+                }
+
+                userPlaylists = data.items || [];
+
+                if (userPlaylists.length === 0) {
+                    selectorDiv.innerHTML = '<p>No playlists found</p>';
+                    return;
+                }
+
+                let html = '';
+                userPlaylists.forEach((playlist, i) => {
+                    const imageUrl = playlist.images && playlist.images.length > 0
+                        ? playlist.images[0].url
+                        : '';
+                    html += `
+                        <div class="playlist-checkbox">
+                            <input type="checkbox" id="playlist-${i}" value="${playlist.id}" onchange="updatePlaylistSelection()">
+                            ${imageUrl ? `<img src="${imageUrl}" class="playlist-image" alt="Playlist cover">` : '<div class="playlist-image"></div>'}
+                            <label for="playlist-${i}">${playlist.name} (${playlist.tracks.total} tracks)</label>
+                        </div>
+                    `;
+                });
+
+                selectorDiv.innerHTML = html;
+                selectorDiv.classList.remove('hidden');
+                document.getElementById('select-all-btn').style.display = 'inline-block';
+
+            } catch (error) {
+                console.error('Failed to load playlists:', error);
+                selectorDiv.innerHTML = '<p>Failed to load playlists. Please try again.</p>';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Reload Playlists';
+            }
+        }
+
+        function toggleSelectAll() {
+            const checkboxes = document.querySelectorAll('#playlist-selector input[type="checkbox"]');
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+
+            checkboxes.forEach(cb => {
+                cb.checked = !allChecked;
+            });
+
+            updatePlaylistSelection();
+        }
+
+        function updatePlaylistSelection() {
+            const checkedCount = document.querySelectorAll('#playlist-selector input[type="checkbox"]:checked').length;
+            const selectAllBtn = document.getElementById('select-all-btn');
+            selectAllBtn.textContent = checkedCount === userPlaylists.length ? 'Deselect All' : 'Select All';
+        }
+
         async function generatePlaylist() {
             const btn = document.getElementById('generate-btn');
             const playlistDiv = document.getElementById('playlist');
+
+            // Get selected playlist IDs
+            const selectedCheckboxes = document.querySelectorAll('#playlist-selector input[type="checkbox"]:checked');
+            const selectedPlaylistIds = Array.from(selectedCheckboxes).map(cb => cb.value);
 
             btn.disabled = true;
             btn.textContent = 'Generating...';
@@ -289,8 +571,10 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        activity: 'relaxing',
-                        queue_size: 10
+                        activity: currentActivity, // Use selected activity
+                        queue_size: 10,
+                        playlist_ids: selectedPlaylistIds.length > 0 ? selectedPlaylistIds : null,
+                        parameter_weights: parameterWeights // Send custom weights
                     })
                 });
 
@@ -300,17 +584,10 @@
                     playlistDiv.innerHTML = `<p>Error: ${data.error}</p>`;
                 } else {
                     window.currentPlaylist = data.recommendations;
-                    let html = '<h3>Your Weather-Aware Playlist:</h3>';
-                    data.recommendations.forEach((track, i) => {
-                        const trackId = track.id || track.uri?.split(':')[2];
-                        html += `
-                            <div class="track-item" onclick="playTrack('${trackId}', ${i})" id="track-${i}">
-                                ${i + 1}. <strong>${track.name}</strong> by ${track.artists.join(', ')}
-                                <br><small>Score: ${track.score.toFixed(2)}</small>
-                            </div>
-                        `;
-                    });
-                    playlistDiv.innerHTML = html;
+                    candidatePool = data.candidate_pool || [];  // Store full candidate pool for expansion
+                    console.log(`Loaded ${window.currentPlaylist.length} recommendations with ${candidatePool.length} candidates in pool`);
+
+                    renderPlaylist();
                     initializePlayer();
                 }
             } catch (error) {
@@ -322,11 +599,106 @@
             }
         }
 
+        function renderPlaylist() {
+            const playlistDiv = document.getElementById('playlist');
+
+            if (!window.currentPlaylist || window.currentPlaylist.length === 0) {
+                playlistDiv.innerHTML = '<p>No tracks in playlist</p>';
+                return;
+            }
+
+            let html = '';
+            window.currentPlaylist.forEach((track, index) => {
+                const trackId = track.id || track.uri?.split(':')[2];
+                const artists = Array.isArray(track.artists)
+                    ? track.artists.map(a => a.name || a).join(', ')
+                    : (track.artist || 'Unknown Artist');
+                const score = track.score !== undefined ? track.score.toFixed(2) : 'N/A';
+
+                html += `
+                    <div class="track-item" id="track-${index}" onclick="playTrack('${trackId}', ${index})">
+                        <strong>${index + 1}. ${track.name || 'Unknown Track'}</strong> - ${artists}
+                        <span style="float: right; color: #666;">Score: ${score}</span>
+                    </div>
+                `;
+            });
+
+            playlistDiv.innerHTML = html;
+        }
+
+        async function recordListeningBehavior(trackId, genres, completionPercentage) {
+            try {
+                const response = await fetch('/api/behavior/track', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        track_id: trackId,
+                        genres: genres,
+                        completion_percentage: completionPercentage
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    console.log(`Behavior recorded: ${(completionPercentage * 100).toFixed(1)}% completion`);
+                    console.log('Updated genre scores:', data.genre_scores);
+                    console.log('Skip threshold:', data.skip_threshold);
+                    return data;
+                }
+            } catch (error) {
+                console.error('Failed to record behavior:', error);
+            }
+            return null;
+        }
+
+        async function expandQueue() {
+            if (candidatePool.length === 0) {
+                console.log('No candidates available for queue expansion');
+                return;
+            }
+
+            try {
+                // Re-score the candidate pool with updated preferences
+                const response = await fetch('/api/recommendations/rescore', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        candidates: candidatePool
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.next_track) {
+                    const nextTrack = data.next_track;
+
+                    // Add the highest scoring track to the playlist
+                    window.currentPlaylist.push(nextTrack);
+                    console.log(`Added to queue: ${nextTrack.name} (score: ${nextTrack.score.toFixed(2)})`);
+
+                    // Remove the added track from candidate pool to avoid duplicates
+                    const addedTrackId = nextTrack.id;
+                    candidatePool = candidatePool.filter(track => track.id !== addedTrackId);
+                    console.log(`Candidate pool updated: ${candidatePool.length} tracks remaining`);
+
+                    // Re-render the playlist
+                    renderPlaylist();
+                }
+            } catch (error) {
+                console.error('Failed to expand queue:', error);
+            }
+        }
+
         // Spotify Web Playback SDK Integration
         let player;
         let deviceId;
         let currentTrackIndex = 0;
         let accessToken;
+        let isAutoPlaying = false; // Flag to prevent multiple auto-play triggers
+        let lastTrackUri = null; // Track the last played track to detect changes
+        let trackStartTime = null; // Track when current song started
+        let currentPlayingTrack = null; // Currently playing track object
+        let candidatePool = []; // Full candidate pool for dynamic expansion
 
         window.onSpotifyWebPlaybackSDKReady = () => {
             console.log('Spotify SDK Ready');
@@ -370,6 +742,55 @@
 
                 updatePlayerUI(state);
                 updateProgress(state);
+
+                const currentTrack = state.track_window.current_track;
+                const currentTrackUri = currentTrack ? currentTrack.uri : null;
+
+                // Detect track change
+                if (currentTrackUri !== lastTrackUri) {
+                    // Record behavior for previous track if it exists
+                    if (lastTrackUri && trackStartTime && currentPlayingTrack) {
+                        const playDuration = Date.now() - trackStartTime;
+                        const trackDuration = currentPlayingTrack.duration_ms || state.duration;
+                        const completionPercentage = Math.min(playDuration / trackDuration, 1.0);
+
+                        // Get genres from the track
+                        const genres = [];
+                        if (currentPlayingTrack.artists) {
+                            currentPlayingTrack.artists.forEach(artist => {
+                                if (artist.genres) {
+                                    genres.push(...artist.genres);
+                                }
+                            });
+                        }
+
+                        const trackId = currentPlayingTrack.id || lastTrackUri.split(':')[2];
+                        recordListeningBehavior(trackId, genres, completionPercentage);
+                    }
+
+                    // Update tracking for new track
+                    lastTrackUri = currentTrackUri;
+                    trackStartTime = Date.now();
+                    currentPlayingTrack = window.currentPlaylist[currentTrackIndex];
+                    isAutoPlaying = false; // Reset auto-play flag on track change
+
+                    // Expand queue when next track starts playing
+                    expandQueue();
+                }
+
+                // Auto-play next track when current track ends
+                // Track has ended when position is 0, paused is true, and we're not at the start
+                const trackEnded = state.position === 0 &&
+                                   state.paused &&
+                                   state.track_window.previous_tracks.length > 0;
+
+                if (trackEnded && !isAutoPlaying && window.currentPlaylist && currentTrackIndex < window.currentPlaylist.length - 1) {
+                    console.log('Track ended, playing next track...');
+                    isAutoPlaying = true; // Set flag to prevent multiple triggers
+                    setTimeout(() => {
+                        nextTrack();
+                    }, 500); // Small delay to ensure state is settled
+                }
             });
 
             // Connect to the player
@@ -410,6 +831,8 @@
             }
 
             currentTrackIndex = index;
+            currentPlayingTrack = window.currentPlaylist[index]; // Store full track data
+            trackStartTime = Date.now(); // Mark when track starts
 
             // Update UI to show playing track
             document.querySelectorAll('.track-item').forEach(item => item.classList.remove('playing'));

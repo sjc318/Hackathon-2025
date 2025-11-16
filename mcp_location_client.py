@@ -6,6 +6,7 @@ This script connects to a public MCP server to get current location information.
 
 import asyncio
 import json
+import sys
 from typing import Any, Dict
 import httpx
 
@@ -245,7 +246,7 @@ async def run_simple_mcp_server():
     site = web.TCPSite(runner, 'localhost', 3000)
     await site.start()
 
-import sys
+
 if __name__ == "__main__":
     print("\n=== MCP Location Service Client ===\n", file=sys.stderr)
     print("This script demonstrates accessing location via MCP protocol.")

@@ -190,6 +190,24 @@ class SpotifyService:
         """Get current user's profile"""
         return self._api_request('/me')
 
+    def get_user_top_tracks(self, limit: int = 50, time_range: str = 'medium_term') -> Dict[str, Any]:
+        """
+        Get user's top tracks
+
+        Args:
+            limit: Number of tracks to retrieve (max 50)
+            time_range: Time range for top tracks
+                - short_term: last 4 weeks
+                - medium_term: last 6 months (default)
+                - long_term: all time
+
+        Returns:
+            Dict containing top tracks data with audio features
+        """
+        limit = min(limit, 50)  # Spotify API max
+        endpoint = f'/me/top/tracks?limit={limit}&time_range={time_range}'
+        return self._api_request(endpoint)
+
     # Playlist Methods
     def get_user_playlists(self, limit: int = 50, offset: int = 0) -> Dict[str, Any]:
         """Get user's playlists with pagination"""

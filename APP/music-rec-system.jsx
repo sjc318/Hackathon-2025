@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Play, Pause, SkipForward, Music, RefreshCw, TrendingUp, LogOut } from 'lucide-react';
-import spotifyService from './spotify-service';
+import spotifyService from '../spotify-service';
 
 export default function AdaptiveMusicSystem() {
   const [userPreferences, setUserPreferences] = useState(null);

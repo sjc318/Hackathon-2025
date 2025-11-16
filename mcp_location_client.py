@@ -34,7 +34,7 @@ class MCPClient:
                 }
             )
             result = response.json()
-            print(f"✓ Connected to MCP server: {result.get('serverInfo', {}).get('name', 'Unknown')}")
+            print(f"[OK] Connected to MCP server: {result.get('serverInfo', {}).get('name', 'Unknown')}")
             return result
 
     async def list_tools(self) -> list:
@@ -45,7 +45,7 @@ class MCPClient:
                 json={}
             )
             tools = response.json().get("tools", [])
-            print(f"\n✓ Available tools: {len(tools)}")
+            print(f"\n[OK] Available tools: {len(tools)}")
             for tool in tools:
                 print(f"  - {tool['name']}: {tool.get('description', 'No description')}")
             return tools
@@ -111,13 +111,13 @@ async def get_location_via_mcp():
         return result
 
     except httpx.ConnectError:
-        print("\n❌ Error: Could not connect to MCP server")
+        print("\n[X] Error: Could not connect to MCP server")
         print("   Make sure the MCP server is running at:", mcp_server_url)
         print("\nAlternative: Using IP-based location lookup...")
         await get_location_via_ip()
 
     except Exception as e:
-        print(f"\n❌ Error: {e}")
+        print(f"\n[X] Error: {e}")
         print("\nFalling back to IP-based location...")
         await get_location_via_ip()
 
@@ -132,24 +132,32 @@ async def get_location_via_ip():
     print("=" * 60)
 
     try:
-        async with httpx.AsyncClient() as client:
-            # Using a free IP geolocation service
-            response = await client.get("https://ipapi.co/json/")
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            # Using ip-api.com (free, no API key needed)
+            response = await client.get("http://ip-api.com/json/")
             data = response.json()
 
-            print(f"\n📍 Location Information:")
-            print(f"   IP Address: {data.get('ip', 'Unknown')}")
-            print(f"   City: {data.get('city', 'Unknown')}")
-            print(f"   Region: {data.get('region', 'Unknown')}")
-            print(f"   Country: {data.get('country_name', 'Unknown')} ({data.get('country', 'Unknown')})")
-            print(f"   Coordinates: {data.get('latitude', 'Unknown')}, {data.get('longitude', 'Unknown')}")
-            print(f"   Timezone: {data.get('timezone', 'Unknown')}")
-            print(f"   ISP: {data.get('org', 'Unknown')}")
+            if data.get('status') == 'success':
+                lat = data.get('lat', 0)
+                lon = data.get('lon', 0)
+                lat_dir = "N" if lat >= 0 else "S"
+                lon_dir = "E" if lon >= 0 else "W"
 
-            return data
+                print(f"\n[REAL DATA] Location Information:")
+                print(f"   IP Address: {data.get('query', 'Unknown')}")
+                print(f"   City: {data.get('city', 'Unknown')}")
+                print(f"   Region: {data.get('regionName', 'Unknown')}")
+                print(f"   Country: {data.get('country', 'Unknown')}")
+                print(f"   Coordinates: {abs(lat):.4f}° {lat_dir}, {abs(lon):.4f}° {lon_dir}")
+                print(f"   Timezone: {data.get('timezone', 'Unknown')}")
+                print(f"   ISP: {data.get('isp', 'Unknown')}")
+
+                return data
+            else:
+                print(f"[X] Error: API returned status '{data.get('status')}'")
 
     except Exception as e:
-        print(f"❌ Error getting location: {e}")
+        print(f"[X] Error getting location: {e}")
 
 
 # Alternative: Simple MCP server example for testing
@@ -190,17 +198,36 @@ async def run_simple_mcp_server():
         tool_name = data.get("name")
 
         if tool_name == "get_location":
-            # In a real implementation, this would get actual location
-            async with httpx.AsyncClient() as client:
-                response = await client.get("https://ipapi.co/json/")
-                location_data = response.json()
+            # Get real location data using ip-api.com
+            try:
+                async with httpx.AsyncClient(timeout=10.0) as client:
+                    response = await client.get("http://ip-api.com/json/")
+                    location_data = response.json()
+
+                if location_data.get('status') == 'success':
+                    lat = location_data.get('lat', 0)
+                    lon = location_data.get('lon', 0)
+                    lat_dir = "N" if lat >= 0 else "S"
+                    lon_dir = "E" if lon >= 0 else "W"
+
+                    text = (
+                        f"Location: {location_data.get('city')}, {location_data.get('regionName')}, {location_data.get('country')}\n"
+                        f"Coordinates: {abs(lat):.4f}° {lat_dir}, {abs(lon):.4f}° {lon_dir}\n"
+                        f"Timezone: {location_data.get('timezone')}\n"
+                        f"ISP: {location_data.get('isp')}\n"
+                        f"IP Address: {location_data.get('query')}\n"
+                        f"Status: [REAL DATA]"
+                    )
+                else:
+                    text = "Error: Unable to retrieve location data"
+            except Exception as e:
+                text = f"Error: {str(e)}\nFalling back to mock data\n\nLocation: San Francisco, California, USA\nStatus: [FALLBACK DATA]"
 
             return web.json_response({
                 "content": [
                     {
                         "type": "text",
-                        "text": f"Location: {location_data.get('city')}, {location_data.get('country_name')}\n"
-                               f"Coordinates: {location_data.get('latitude')}, {location_data.get('longitude')}"
+                        "text": text
                     }
                 ]
             })
@@ -218,9 +245,9 @@ async def run_simple_mcp_server():
     site = web.TCPSite(runner, 'localhost', 3000)
     await site.start()
 
-
+import sys
 if __name__ == "__main__":
-    print("\n🌍 MCP Location Service Client\n")
+    print("\n=== MCP Location Service Client ===\n", file=sys.stderr)
     print("This script demonstrates accessing location via MCP protocol.")
     print("If no MCP server is available, it falls back to IP geolocation.\n")
 

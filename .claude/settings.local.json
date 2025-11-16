@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python test_mcp_complete.py:*)",
+      "Bash(python3:*)",
+      "Bash(where:*)",
+      "Bash(nul)",
+      "Bash(py test_mcp_complete.py:*)",
+      "Bash(timeout /t 2 /nobreak)",
+      "Bash(py mcp_location_client.py:*)",
+      "Bash(py test_client_direct.py:*)",
+      "Bash(py demo_real_data.py)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(dir /b /s:*)",
+      "Bash(py test_mcp_stdio.py:*)",
+      "Bash(dir /b *.log *.txt 2)",
+      "Bash(py -c:*)",
+      "Bash(echo:*)",
+      "Bash(py:*)",
+      "Bash(git rm:*)",
+      "Bash(.gitignore)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

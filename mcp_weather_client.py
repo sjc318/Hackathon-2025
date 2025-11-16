@@ -36,7 +36,7 @@ class MCPClient:
                 }
             )
             result = response.json()
-            print(f"✓ Connected to MCP server: {result.get('serverInfo', {}).get('name', 'Unknown')}")
+            print(f"[OK] Connected to MCP server: {result.get('serverInfo', {}).get('name', 'Unknown')}")
             return result
 
     async def list_tools(self) -> list:
@@ -47,7 +47,7 @@ class MCPClient:
                 json={}
             )
             tools = response.json().get("tools", [])
-            print(f"\n✓ Available tools: {len(tools)}")
+            print(f"\n[OK] Available tools: {len(tools)}")
             for tool in tools:
                 print(f"  - {tool['name']}: {tool.get('description', 'No description')}")
             return tools
@@ -168,13 +168,13 @@ async def get_weather_via_mcp(latitude: float, longitude: float):
         return result
 
     except httpx.ConnectError:
-        print("\n❌ Error: Could not connect to MCP weather server")
+        print("\n[X] Error: Could not connect to MCP weather server")
         print("   Make sure the MCP weather server is running at:", mcp_server_url)
         print("\nAlternative: Using free weather API...")
         await get_weather_via_api(latitude, longitude)
 
     except Exception as e:
-        print(f"\n❌ Error: {e}")
+        print(f"\n[X] Error: {e}")
         print("\nFalling back to direct weather API...")
         await get_weather_via_api(latitude, longitude)
 
@@ -223,7 +223,7 @@ async def get_weather_via_api(latitude: float, longitude: float):
             weather_code = current.get("weather_code", 0)
             weather_desc = weather_codes.get(weather_code, "Unknown")
 
-            print(f"\n☀️  Current Weather Conditions:")
+            print(f"\nCurrent Weather Conditions:")
             print(f"   Location: {latitude}°, {longitude}°")
             print(f"   Conditions: {weather_desc}")
             print(f"   Temperature: {current.get('temperature_2m', 'N/A')}°F")
@@ -238,12 +238,12 @@ async def get_weather_via_api(latitude: float, longitude: float):
             return data
 
     except Exception as e:
-        print(f"❌ Error getting weather: {e}")
+        print(f"[X] Error getting weather: {e}")
 
 
 async def main():
     """Main function to get location and weather"""
-    print("\n🌤️  MCP Weather Service Client\n")
+    print("\nMCP Weather Service Client\n")
     print("This script gets current weather conditions using MCP protocol.")
     print("If no MCP server is available, it falls back to weather API.\n")
 
@@ -252,16 +252,16 @@ async def main():
     location = await get_location_data()
 
     if not location:
-        print("❌ Could not determine location. Exiting.")
+        print("[X] Could not determine location. Exiting.")
         return
 
     latitude = location.get("latitude")
     longitude = location.get("longitude")
 
     if location.get("city"):
-        print(f"✓ Location determined: {location.get('city')}, {location.get('country')}")
+        print(f"[OK] Location determined: {location.get('city')}, {location.get('country')}")
 
-    print(f"✓ Coordinates: {latitude}, {longitude}\n")
+    print(f"[OK] Coordinates: {latitude}, {longitude}\n")
 
     # Get weather for location
     print("[Step 2] Getting current weather conditions...")
